@@ -1,0 +1,22 @@
+# Usage: create a .env next to this file with JWT_SECRET=<32+ random chars>, then: docker compose up -d --build
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes: [mongo-data:/data/db]
+  api:
+    build: ./server
+    restart: unless-stopped
+    depends_on: [mongo]
+    environment:
+      MONGO_URI: mongodb://mongo:27017/pg-manager
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+      CLIENT_URL: ${CLIENT_URL:-http://localhost:8080}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+  web:
+    build: ./client
+    restart: unless-stopped
+    depends_on: [api]
+    ports: ["8080:80"]
+volumes:
+  mongo-data:
